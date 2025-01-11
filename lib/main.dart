@@ -12,6 +12,9 @@ void main() {
       BlocProvider(
         create: (context) => LocationBloc(),
       ),
+      BlocProvider(
+        create: (context) => MapBloc(),
+      ),
     ],
     child: const MyApp(),
   ));
