@@ -5,13 +5,26 @@ import 'package:equatable/equatable.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:maps_app/themes/themes.dart';
 
+import '../blocs.dart';
+
 part 'map_event.dart';
 part 'map_state.dart';
 
 class MapBloc extends Bloc<MapEvent, MapState> {
+  //Necesito acceso al locationbloc porque ahi estan las ubicaciones
+  final LocationBloc locationBloc;
+
   GoogleMapController? _mapController;
-  MapBloc() : super(MapState()) {
+
+  MapBloc({required this.locationBloc}) : super(MapState()) {
     on<OnMapInitialzedEvent>(_onInitMap);
+
+    locationBloc.stream.listen((locationstate) {
+      if (state.followUser) return;
+      if (locationstate.lastKnownLocation == null) return;
+
+      moveCamera(locationstate.lastKnownLocation!);
+    });
   }
 
   void _onInitMap(OnMapInitialzedEvent event, Emitter<MapState> emit) {

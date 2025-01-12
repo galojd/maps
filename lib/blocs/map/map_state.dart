@@ -6,7 +6,7 @@ class MapState extends Equatable {
   //seguir la ubicacion del usuario
   final bool followUser;
 
-  const MapState({this.isMapInitialized = false, this.followUser = false});
+  const MapState({this.isMapInitialized = false, this.followUser = true});
 
   MapState copyWith({
     bool? isMapInitialized,

@@ -11,8 +11,8 @@ part 'gps_state.dart';
 class GpsBloc extends Bloc<GpsEvent, GpsState> {
   StreamSubscription? gpsServiceSubscription;
   GpsBloc()
-      : super(
-            const GpsState(isGpsEnabled: true, isGpsPermissionGranted: false)) {
+      : super(const GpsState(
+            isGpsEnabled: false, isGpsPermissionGranted: false)) {
     on<GpsAndPermissionEvent>((event, emit) => emit(state.copyWith(
         isGpsEnabled: event.isGpsEnabled,
         isGpsPermissionGranted: event.isGpsPermissionGranted)));
@@ -20,8 +20,8 @@ class GpsBloc extends Bloc<GpsEvent, GpsState> {
   }
 
   Future<void> _init() async {
-    final isEnabled = await _checkGpsStatus();
-    final isGranted = await _isPermissionGranted();
+    // final isEnabled = await _checkGpsStatus();
+    // final isGranted = await _isPermissionGranted();
 
     final gpsInitStatus =
         await Future.wait([_checkGpsStatus(), _isPermissionGranted()]);
@@ -38,16 +38,21 @@ class GpsBloc extends Bloc<GpsEvent, GpsState> {
 
   Future<bool> _checkGpsStatus() async {
     final isEnable = await Geolocator.isLocationServiceEnabled();
+
     gpsServiceSubscription =
         Geolocator.getServiceStatusStream().listen((event) {
       final isEnabled = (event.index == 1) ? true : false;
-      print('service status $isEnabled');
+      add(GpsAndPermissionEvent(
+        isGpsEnabled: isEnabled,
+        isGpsPermissionGranted: state.isGpsPermissionGranted,
+      ));
     });
+
     return isEnable;
   }
 
   Future<void> askGpsAccess() async {
-    final status = Permission.location.request();
+    final status = await Permission.location.request();
 
     switch (status) {
       case PermissionStatus.granted:
@@ -62,6 +67,9 @@ class GpsBloc extends Bloc<GpsEvent, GpsState> {
         add(GpsAndPermissionEvent(
             isGpsEnabled: state.isGpsEnabled, isGpsPermissionGranted: false));
         openAppSettings();
+
+      default:
+        throw UnimplementedError();
     }
   }
 
